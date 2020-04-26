@@ -27,8 +27,7 @@ class App extends React.Component {
     })
   }
 
-  enderecoChange = ( event, data ) => {
-
+  enderecoChange = ( event ) => {
     this.setState({
       endereco: event.target.value
     })
@@ -126,7 +125,6 @@ class App extends React.Component {
     }).catch( ( error ) => console.log('error: ', error) );
   }
 
-
   render() {  
     return (
       <div class='container'>
@@ -140,8 +138,27 @@ class App extends React.Component {
               <h2>Gerenciar Empregados <button type="button"  class="btn btn-success float-right"
               data-toggle="modal" data-target="#mymodal">Adicionar novo Usuário</button> </h2>
 
-
-              <table class="table table-hover table-dark">
+              <input type="text" id="inputText"  onKeyUp={ () => { // Declare variables 
+                var input, filter, table, tr, td, i, txtValue;
+                input = document.getElementById("inputText");
+                filter = input.value.toUpperCase();
+                table = document.getElementById("table");
+                tr = table.getElementsByTagName("tr");
+              
+                // Loop through all table rows, and hide those who don't match the search query
+                for (i = 0; i < tr.length; i++) {
+                  td = tr[i].getElementsByTagName("td")[1];
+                  if (td) {
+                    txtValue = td.textContent || td.innerText;
+                    if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                      tr[i].style.display = "";
+                    } else {
+                      tr[i].style.display = "none";
+                    }
+                  } 
+                }  } } placeholder="Search for names.."></input>
+                
+              <table id='table' class="table table-hover table-dark">
 
                 <tr>
                   <th>ID</th>
