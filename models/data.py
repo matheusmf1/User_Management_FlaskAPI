@@ -15,6 +15,9 @@ class Data(db.Model):
     self.data = data
     self.status = status
 
+  def toDict(self):
+    return {'nome': self.nome, 'endereco': self.endereco, 'telefone': self.telefone, 'data': self.data, 'status': self.status, 'id': self.id}
+
   @classmethod
   def search_all(cls):
     return cls.query.all()
@@ -29,5 +32,5 @@ class Data(db.Model):
     db.session.delete(self)
     db.session.commit()
 
-  def select_by_ID(self, id ):
+  def select_by_ID(self, id):
     return Data.query.filter_by(id = id).first()

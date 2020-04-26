@@ -1,20 +1,32 @@
-from flask import Flask, render_template, request, redirect, url_for, flash
-
+from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
+from flask_cors import CORS
 from db import db
 from models.data import Data
 
 app = Flask( __name__ )
-app.secret_key = 'oi'
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///data.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = '8221d4c510b33c825c19d78bbf276ed1'
-
+CORS(app)
 
 @app.route('/')
 def Index():
   all_data = Data.search_all()
   return render_template( 'index.html', dados = all_data )
+
+@app.route('/get', methods=['GET'])
+def getData():
+  try:
+    all_data = Data.search_all()
+  except:
+    return jsonify({'mensagem': 'Ocorreu um erro interno'}), 500
+
+  list_dict = []
+  for content in all_data:
+    list_dict.append(content.toDict())
+
+  return {'dados': list_dict}, 200
 
 
 # routes to CRUD data
@@ -23,45 +35,51 @@ def insert():
 
   if request.method == 'POST':
 
-    nome = request.form['nome']
-    endereco = request.form['endereco']
-    telefone = request.form['telefone']
-    data = request.form['data']
-    status = request.form['status']
+    nome = request.json['nome']
+    endereco = request.json['endereco']
+    telefone = request.json['telefone']
+    data = request.json['data']
+    status = request.json['status']
 
-    user = Data( nome, endereco, telefone, data, status)
-    user.save()
+    try:
+      user = Data( nome, endereco, telefone, data, status )
+      user.save()
 
-    flash( 'Usuário adicionado com sucesso!' )
+      return jsonify( {'ok': True} ) 
+    except:
+      return jsonify({'mensagem': 'Ocorreu um erro interno'}), 500
 
-    return redirect( url_for( 'Index' ) )
+    # return redirect( url_for( 'Index' ) )
 
-@app.route( '/update', methods = ['GET', 'POST'] )
-def update():
+@app.route( '/update/<id>', methods = ['GET', 'POST'] )
+def update( id ):
 
   if request.method == 'POST':
-    my_data = Data.query.get( request.form.get('id') )
+    try:
+      my_data = Data.query.get( id )
 
-    my_data.nome = request.form['nome']
-    my_data.endereco = request.form['endereco']
-    my_data.telefone = request.form['telefone']
-    my_data.data = request.form['data']
-    my_data.status = request.form['status']
+      my_data.nome = request.json['nome']
+      my_data.endereco = request.json['endereco']
+      my_data.telefone = request.json['telefone']
+      my_data.data = request.json['data']
+      my_data.status = request.json['status']
 
-    db.session.commit()
-    flash('Usuário atualizado com sucesso!')
+      db.session.commit()
+      return jsonify( {'ok': True} ) 
+    except:
+      return jsonify({'mensagem': 'Ocorreu um erro interno'}), 500
 
-    return redirect( url_for( 'Index' ) )
 
 
 @app.route( '/delete/<id>', methods = ['GET', 'DELETE'] )
 def delete( id ):
-  my_data = Data.query.get( id )
-  my_data.delete()
+  try:
+    my_data = Data.query.get( id )
+    my_data.delete()
+    return redirect( 'http://localhost:3000' )
+  except:
+    return jsonify({'mensagem': 'Ocorreu um erro interno'}), 500
 
-  flash('Usuário apagado com sucesso!')
-
-  return redirect( url_for( 'Index' ) )
 
 @app.before_first_request
 def create_Tables():
