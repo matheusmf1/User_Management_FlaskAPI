@@ -135,29 +135,120 @@ class App extends React.Component {
 
             <div class = "jumbotron p-3">
 
-              <h2>Gerenciar Empregados <button type="button"  class="btn btn-success float-right"
-              data-toggle="modal" data-target="#mymodal">Adicionar novo Usuário</button> </h2>
+              <div class = 'row float-right'>
+
+              <button type="button"  class="btn btn-success" onClick={ async () => { 
+                
+                const jsonUrl = await fetch( 'http://localhost:5000/get',
+                {
+                  method: 'GET',
+                  headers: { 'Content-Type': 'application/json' },
+                  mode: 'cors'
+                 }
+                 
+                 ).then( ( response ) => { 
+                  if ( response.status === 200 )
+                    return response.json();
+                }
+                ).then( ( resp ) => {
+                  
+                  if ( resp.dados ) {
+                    
+                    const dados = resp.dados;
+
+                    const data = dados.map( row => ({
+
+                      nome: row.nome,
+                      endereco: row.endereco,
+                      telefone: row.telefone,
+                      data: row.data,
+                      status: row.status
+
+                    }));
+
+
+                    const csvData = ( data ) => {
+
+                      const csvRows = [];
+
+                      // get headers
+                      const headers = Object.keys( data[0] );
+                      csvRows.push( headers.join(';') );
+                   
+                      // loop over the rows
+                      for ( let row of data ) {
+
+                        const values = headers.map( header => {
+
+                         const helper = ('' + row[header]).replace(/"/g, '\\"'); 
+                         return `"${helper}"`;
+
+                        });
+                        csvRows.push( values.join(';') );
+                      }
+                      return csvRows.join('\n');
+                    }
+
+                    const formatedData = csvData( data );
+
+                    const download = ( data ) => {
+
+                        const blob = new Blob( [data], { type: 'text/csv' } );
+                        const url = window.URL.createObjectURL( blob );
+                        const a = document.createElement('a');
+
+                          a.setAttribute( 'hidden', '' );
+                          a.setAttribute( 'href', url );
+                          a.setAttribute( 'download', 'download.csv' );
+                        
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                    }
+
+                    download( formatedData );
+
+                }}).catch( ( error ) => console.log('error: ', error) );
+                
+               
+                
+                } }>Exportar dados .CSV</button>
+              
+              <button type="button"  class="btn btn-success" data-toggle="modal" data-target="#mymodal">Adicionar novo Usuário</button>
+
+              </div>
 
               <input type="text" id="inputText"  onKeyUp={ () => { // Declare variables 
+
                 var input, filter, table, tr, td, i, txtValue;
                 input = document.getElementById("inputText");
-                filter = input.value.toUpperCase();
+                filter = input.value.toLowerCase();
                 table = document.getElementById("table");
                 tr = table.getElementsByTagName("tr");
-              
+
                 // Loop through all table rows, and hide those who don't match the search query
                 for (i = 0; i < tr.length; i++) {
+                  
                   td = tr[i].getElementsByTagName("td")[1];
-                  if (td) {
+          
+
+                  if (td ) {
+
+
                     txtValue = td.textContent || td.innerText;
-                    if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                    txtValue = txtValue.toLowerCase();
+
+                    if (txtValue.indexOf(filter) > -1) {
                       tr[i].style.display = "";
                     } else {
                       tr[i].style.display = "none";
                     }
                   } 
-                }  } } placeholder="Search for names.."></input>
-                
+                } 
+
+
+              } } placeholder="Search for names.."></input>
+
               <table id='table' class="table table-hover table-dark">
 
                 <tr>
