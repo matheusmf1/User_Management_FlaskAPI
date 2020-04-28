@@ -425,7 +425,7 @@ class App extends React.Component {
 
                     <td>
                       <a href={`http://localhost:5000/update/${user.id}`} class="btn btn-warning btn-xs" data-toggle="modal" data-target={`#modaledit${user.id}`}>Editar</a>
-                      <a href={`http://localhost:5000/delete/${user.id}`} class="btn btn-danger btn-xs" onclick="return confirm('Vocë tem certeza que deseja apagar ?')">Apagar</a>
+                      <a href={`http://localhost:5000/delete/${user.id}`} class="btn btn-danger btn-xs">Apagar</a>
                     </td>
                   </tr>,
 
