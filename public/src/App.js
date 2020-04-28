@@ -1,4 +1,5 @@
 import React from 'react';
+import CSVReader from 'react-csv-reader';
 
 class App extends React.Component {
 
@@ -11,7 +12,8 @@ class App extends React.Component {
       endereco:'',
       telefone:'',
       data: '',
-      status:''
+      status:'',
+      csvFile: ''
     }
   }
 
@@ -125,6 +127,7 @@ class App extends React.Component {
     }).catch( ( error ) => console.log('error: ', error) );
   }
 
+
   render() {  
     return (
       <div class='container'>
@@ -210,15 +213,83 @@ class App extends React.Component {
 
                 }}).catch( ( error ) => console.log('error: ', error) );
                 
-               
-                
+                    
                 } }>Exportar dados .CSV</button>
               
               <button type="button"  class="btn btn-success" data-toggle="modal" data-target="#mymodal">Adicionar novo Usuário</button>
+            
+            {/* LEITURA DE UM CSV */}
+              <CSVReader
+                label='Upload csv'
+                onFileLoaded={ ( data ) => { 
+                
+                  const div = document.querySelector('#output');
+                  div.innerHTML = '';
+                  const table = document.createElement('table');
+                    table.className = 'table table-hover table-dark';
 
+                  
+                  data.forEach( ( row, index ) => {
+
+                    let tr = document.createElement('tr');
+                    var dict = { 0: '', 1: '', 2: '', 3: '', 4: '' };
+                  
+                    row.forEach( (item, index) => {
+
+                      dict[`${index}`] = item; 
+           
+                      var td = document.createElement('td');
+                      td.innerHTML = item;
+
+                      tr.appendChild( td );
+                    });
+
+                    if ( index != 0 ) {
+  
+                      let btn = document.createElement('button');
+
+                      btn.className = 'btn btn-success';
+                      btn.setAttribute('type', 'submit');
+                      btn.innerHTML = 'Adicionar';
+
+                      btn.addEventListener( 'click', async () => { 
+
+                        await fetch( 'http://localhost:5000/insert',
+                        {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify( { 'nome': dict['0'], 'endereco': dict['1'], 'telefone': dict['2'], 'data': dict['3'],  'status': dict['4'] } )
+                        }
+                        
+                        ).then( ( response ) => { 
+                          if ( response.status === 200 )
+                            return response.json();
+                        }
+                        ).then( ( resp ) => {
+                        this.componentDidMount();
+                        console.log('adicionou');      
+                        
+                        }).catch( ( error ) => console.log('error: ', error) ); 
+
+                      });
+
+                      tr.appendChild( btn );    
+                      table.appendChild( tr ); 
+                    }
+
+                    table.appendChild( tr );
+                  })          
+
+                div.appendChild( table )
+                
+                
+                } }
+              />
+             
               </div>
 
-              <input type="text" id="inputText"  onKeyUp={ () => { // Declare variables 
+              {/* CAMPO DE PESQUISA */}
+              <input type="text" id="inputText"  onKeyUp={ () => {
 
                 var input, filter, table, tr, td, i, txtValue;
                 input = document.getElementById("inputText");
@@ -231,7 +302,6 @@ class App extends React.Component {
                   
                   td = tr[i].getElementsByTagName("td")[1];
           
-
                   if (td ) {
 
 
@@ -247,7 +317,12 @@ class App extends React.Component {
                 } 
 
 
-              } } placeholder="Search for names.."></input>
+              } } placeholder="Busco por nome"></input>
+            
+
+            <div id="output">
+
+            </div>
 
               <table id='table' class="table table-hover table-dark">
 
