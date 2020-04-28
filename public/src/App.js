@@ -1,5 +1,7 @@
 import React from 'react';
 import CSVReader from 'react-csv-reader';
+import Chart from './components/Chart';
+
 
 class App extends React.Component {
 
@@ -13,8 +15,78 @@ class App extends React.Component {
       telefone:'',
       data: '',
       status:'',
-      csvFile: ''
+      csvFile: '',
+      chartData: props.chartDat
     }
+  }
+
+
+
+  async fetchData() {
+    var data;
+
+    const jsonUrl = await fetch( 'http://localhost:5000/get',
+    {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' },
+      mode: 'cors'
+     }
+     
+     ).then( ( response ) => { 
+      if ( response.status === 200 )
+        return response.json();
+    }
+    ).then( ( resp ) => {
+      const dados = resp.dados;
+      
+      if ( dados ) {
+
+        var namedData = [];
+        dados.forEach( ( dado ) => { 
+          
+          if ( dado.data ) { 
+            namedData.push( dado.data );
+          }
+    
+        });
+
+        data = namedData.reduce((a, c) => a.set(c, (a.get(c) || 0) + 1), new Map());
+
+    }}).catch( ( error ) => console.log('error: ', error) );
+
+    var keys =  Array.from( data.keys() );
+    var values =  Array.from( data.values() );
+    return [ keys, values ];
+  }
+
+
+  async getChartData( ) {
+
+    const dados = await this.fetchData();
+    console.log('dados', dados)
+
+    this.setState( {   
+
+        chartData: {
+          labels: dados[0],
+          datasets:[
+            {
+              label:'Usuários',
+              data: dados[1],
+              backgroundColor:[
+                'rgba(255, 99, 132, 0.6)',
+                'rgba(54, 162, 235, 0.6)',
+                'rgba(255, 206, 86, 0.6)',
+                'rgba(75, 192, 192, 0.6)',
+                'rgba(153, 102, 255, 0.6)',
+                'rgba(255, 159, 64, 0.6)',
+                'rgba(255, 99, 132, 0.6)'
+              ]
+            }
+          ]
+        }
+    });
+
   }
 
   idChange = event => {
@@ -127,8 +199,8 @@ class App extends React.Component {
     }).catch( ( error ) => console.log('error: ', error) );
   }
 
+  render() { 
 
-  render() {  
     return (
       <div class='container'>
 
@@ -139,6 +211,8 @@ class App extends React.Component {
             <div class = "jumbotron p-3">
 
               <div class = 'row float-right'>
+
+              <button type="button"  class="btn btn-success" data-toggle="modal" data-target="#grafico" onClick={ () => { this.getChartData() } } >Gerar gráfico</button>
 
               <button type="button"  class="btn btn-success" onClick={ async () => { 
                 
@@ -220,7 +294,6 @@ class App extends React.Component {
             
             {/* LEITURA DE UM CSV */}
               <CSVReader
-                label='Upload csv'
                 onFileLoaded={ ( data ) => { 
                 
                   const div = document.querySelector('#output');
@@ -320,8 +393,10 @@ class App extends React.Component {
               } } placeholder="Busco por nome"></input>
             
 
+            {/* div para carregar os dados do CSV */}
             <div id="output">
 
+            {/* div container para a tabela do banco e todos os botões */}
             </div>
 
               <table id='table' class="table table-hover table-dark">
@@ -502,7 +577,35 @@ class App extends React.Component {
                 </div>
               </div>  
 
-            </div>   
+
+              {/* modal para Adicionar grafico */}
+              <div id="grafico" class="modal fade" role="dialog">
+                  <div class="modal-dialog">
+                    <div class="modal-content">
+
+                      <div class="modal-header">
+                        <h4 class="modal-title">Gráfico</h4>
+                      </div>   
+
+                      <div class="modal-body">
+
+                        <Chart chartData = { this.state.chartData } />
+
+                      </div>
+
+                    <div class="modal-footer">
+              
+                      <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
+
+                    </div>
+              
+                    </div>
+
+                  </div>
+                </div>  
+
+
+              </div>   
 
 
           </div>
