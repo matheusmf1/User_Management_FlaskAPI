@@ -6,7 +6,7 @@
 
 ## Instruções para rodar a aplicação
 
-$  git clone https://github.com/matheusmf1/User_Management_FlaskAPI.git
+$  git clone https://github.com/matheusmf1/User_Management_FlaskAPI.git  
 $ cd User_Management_FlaskAPI
 
 #### Backend
